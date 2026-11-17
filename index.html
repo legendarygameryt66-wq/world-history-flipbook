@@ -229,7 +229,7 @@
     flipbook=new St.PageFlip(bookRoot,{
       width:612,height:783,size:"stretch",minWidth:280,maxWidth:900,minHeight:358,maxHeight:1150,
       autoSize:false,usePortrait:true,showCover:true,flippingTime:720,drawShadow:true,maxShadowOpacity:.38,
-      showPageCorners:true,mobileScrollSupport:false,swipeDistance:28,disableFlipByClick:false
+      showPageCorners:true,mobileScrollSupport:true,swipeDistance:28,disableFlipByClick:false
     });
     flipbook.on("flip",()=>syncPage(true));
     flipbook.on("changeState",event=>{isTurning=event.data==="flipping"||event.data==="user_fold";updateControls();});
