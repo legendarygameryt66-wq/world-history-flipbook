@@ -93,7 +93,7 @@
   $('zoomOut').onclick=async()=>{zoom=Math.max(.65,+(zoom-.15).toFixed(2));$('zoomValue').textContent=Math.round(zoom*100)+'%';await render(page,canvas,zoom)};
   $('fitBtn').onclick=async()=>{zoom=1;$('zoomValue').textContent='100%';await render(page,canvas,zoom)};
   $('fullBtn').onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.();
-  document.addEventListener('fullscreenchange',()=>{const active=!!document.fullscreenElement;$('fullBtn').textContent=active?'⤡ Exit full screen':'⛶ Full screen';$('fullBtn').setAttribute('aria-pressed',String(active));if(pdf&&!busy)render(page,canvas,zoom)});
+  document.addEventListener('fullscreenchange',()=>{const active=!!document.fullscreenElement;$('fullBtn').textContent=active?'⤡ Exit full screen':'⛶ Full screen';$('fullBtn').setAttribute('aria-pressed',String(active))});
   $('bookmarkBtn').onclick=()=>{stored.bookmark=page;localStorage.setItem(activeStorageKey,JSON.stringify(stored));updateControls()};
   window.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;if(e.key==='ArrowLeft')show(page-1,true);if(e.key==='ArrowRight')show(page+1,true)});
   window.addEventListener('resize',()=>{if(pdf&&!busy)render(page,canvas,zoom)});
