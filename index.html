@@ -112,7 +112,7 @@
     const active=chapterAtPage(page);
     select.disabled=!flipbook||busy||preparing||isTurning;
     if(active&&document.activeElement!==select)select.value=String(active.pdfPage);
-    $("chapterHint").textContent=flipbook?"Select a chapter to jump to its beginning.":"Open a PDF to enable chapter jumps.";
+    if(!flipbook)$("chapterHint").textContent="Open a PDF to enable chapter jumps.";else if(!preparing&&!isTurning)$("chapterHint").textContent="Select a chapter to jump to its beginning.";
   }
 
   function populateChapterSelect() {
