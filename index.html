@@ -19,6 +19,18 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+<script>
+try {
+  const savedTheme = localStorage.getItem("worldHistoryFlipbook:theme");
+  const preferredTheme = savedTheme === "dark" || savedTheme === "light"
+    ? savedTheme
+    : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.dataset.theme = preferredTheme;
+} catch (e) {
+  document.documentElement.dataset.theme = "light";
+}
+</script>
+
 <style>
 :root{--ink:#172b3d;--muted:#72808c;--paper:#f5f2eb;--panel:#fffdfa;--line:#e8e2d8;--gold:#b88a4a;--blue:#19354d}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font-family:"DM Sans",sans-serif}button,input{font:inherit}button{color:inherit}
@@ -62,11 +74,36 @@
 
 
 .chapter-card h2{margin-bottom:10px}.chapter-select{width:100%;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);padding:10px 30px 10px 10px;font-size:12px;outline:none}.chapter-select:focus{border-color:#c29b66;box-shadow:0 0 0 2px #c29b6618}.chapter-select:disabled{color:#89929a;background:#f7f5f1}.chapter-hint{font-size:10px;line-height:1.4;color:var(--muted);margin:8px 0 0}.more-tools{padding:0;overflow:hidden}.more-tools summary{cursor:pointer;list-style:none;padding:14px 16px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7a6a54}.more-tools summary::-webkit-details-marker{display:none}.more-tools summary:after{content:"+";float:right;font-size:16px;line-height:12px;color:#9b8b73}.more-tools[open] summary:after{content:"−"}.more-tools-body{padding:0 16px 16px}.mini-tool h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px;color:#7a6a54}.mini-tool+.mini-tool{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}.mini-tool .note{margin-top:12px}.status{max-width:52%;overflow:hidden;text-overflow:ellipsis}
+
+.theme-toggle{width:34px;height:34px;display:grid;place-items:center;padding:0!important;font-size:17px}
+@media(max-width:600px){.top-actions .theme-toggle{width:32px;min-width:32px;padding:0!important}}
+:root[data-theme="dark"]{color-scheme:dark;--ink:#edf3f7;--muted:#aab6c1;--paper:#0e1721;--panel:#172431;--line:#2b3b4a;--gold:#d4aa70;--blue:#35546e}
+:root[data-theme="dark"] body{background:var(--paper);color:var(--ink)}
+:root[data-theme="dark"] .topbar,:root[data-theme="dark"] .toolbar,:root[data-theme="dark"] .card,:root[data-theme="dark"] .more-tools{background:var(--panel);border-color:var(--line)}
+:root[data-theme="dark"] .stage-wrap{background:radial-gradient(ellipse at 50% 42%,#263746 0%,#1b2936 62%,#14212c 100%);border-color:#344554;box-shadow:inset 0 1px #ffffff08}
+:root[data-theme="dark"] .stage-wrap:before{background-image:radial-gradient(#ffffff14 .7px,transparent .7px)}
+:root[data-theme="dark"] .quiet,:root[data-theme="dark"] .toolbtn,:root[data-theme="dark"] .page-jump{color:var(--muted)}
+:root[data-theme="dark"] .quiet:hover,:root[data-theme="dark"] .toolbtn:hover{background:#263746;color:var(--ink)}
+:root[data-theme="dark"] .search input,:root[data-theme="dark"] .chapter-select,:root[data-theme="dark"] .page-jump input{background:#101b26;border-color:#354655;color:var(--ink)}
+:root[data-theme="dark"] .search input::placeholder{color:#82919f}
+:root[data-theme="dark"] .card h2,:root[data-theme="dark"] .mini-tool h2,:root[data-theme="dark"] .more-tools summary{color:#d6bc94}
+:root[data-theme="dark"] .search-note,:root[data-theme="dark"] .chapter-hint,:root[data-theme="dark"] .note{color:var(--muted)}
+:root[data-theme="dark"] .bookmark-row{color:#aab6c1}
+:root[data-theme="dark"] .gold-btn{background:#344454;color:#f3e4cc}
+:root[data-theme="dark"] .gold-btn:hover{background:#405366;color:white}
+:root[data-theme="dark"] .progress{background:#2c3b49}
+:root[data-theme="dark"] .divider{border-left-color:var(--line)}
+:root[data-theme="dark"] .stage-arrow{background:#1c2b38ed;border-color:#425566;color:var(--ink)}
+:root[data-theme="dark"] .stage-arrow:hover{background:#2a3d4e}
+:root[data-theme="dark"] .loading{background:#111c27ed;color:#d1dbe4}
+:root[data-theme="dark"] .spinner{border-color:#394857;border-top-color:var(--gold)}
+:root[data-theme="dark"] .mini-tool+.mini-tool{border-top-color:var(--line)}
+
 </style>
 </head>
 <body>
 <header class="topbar"><div class="brand"><div class="mark">W</div><div><div class="brand-title">Patterns of Interaction</div><div class="brand-sub">World History · McDougal Littell</div></div></div>
-<div class="top-actions"><input id="pdfFile" type="file" accept="application/pdf,.pdf" hidden><button class="quiet" id="openPdf">＋ &nbsp; Open PDF</button><button class="quiet" id="fullBtn" title="Show only the book full screen">⛶ &nbsp; Full screen</button></div></header>
+<div class="top-actions"><input id="pdfFile" type="file" accept="application/pdf,.pdf" hidden><button class="quiet" id="openPdf">＋ &nbsp; Open PDF</button><button class="quiet theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark theme" title="Switch theme" aria-pressed="false">☾</button><button class="quiet" id="fullBtn" title="Show only the book full screen">⛶ &nbsp; Full screen</button></div></header>
 <main class="layout"><section class="reader">
 <div class="reader-head"><div><div class="eyebrow">The illustrated world history</div><h1>Patterns of Interaction</h1><p>Choose a chapter, or use the arrows to turn pages.</p></div><div class="status" id="status">Open your PDF, then choose a chapter</div></div>
 
@@ -87,6 +124,23 @@
 (() => {
   const $ = id => document.getElementById(id);
   const stage = $("stage"), bookShell = $("bookShell");
+  const themeToggle=$("themeToggle");
+  const themeKey="worldHistoryFlipbook:theme";
+  function syncThemeButton() {
+    const dark=document.documentElement.dataset.theme==="dark";
+    themeToggle.textContent=dark?"☀":"☾";
+    themeToggle.setAttribute("aria-label",dark?"Switch to light theme":"Switch to dark theme");
+    themeToggle.setAttribute("title",dark?"Switch to light theme":"Switch to dark theme");
+    themeToggle.setAttribute("aria-pressed",String(dark));
+  }
+  themeToggle.onclick=()=>{
+    const next=document.documentElement.dataset.theme==="dark"?"light":"dark";
+    document.documentElement.dataset.theme=next;
+    try{localStorage.setItem(themeKey,next);}catch(e){}
+    syncThemeButton();
+  };
+  syncThemeButton();
+
   let bookRoot = $("book"), pdf = null, flipbook = null;
   let page = 1, total = 0, zoom = 1, busy = false, preparing = false, isTurning = false;
   let pdfEpoch = 0, slots = [], rendered = new Map(), jobs = new Map(), stored = {}, storageKey = "", resizeFrame = 0;
@@ -321,7 +375,7 @@
       if(flipbook){flipbook.destroy();flipbook=null;}
       if(pdf){try{await pdf.destroy();}catch(e){}}
       pdf=null;total=0;page=1;isTurning=false;preparing=false;stored={};
-      $("thumbs").replaceChildren();$("searchNote").textContent="Search scans the book's selectable text.";
+$("searchNote").textContent="Searches selectable text in your PDF.";
       rebuildBookRoot();
       const data=new Uint8Array(await file.arrayBuffer());if(generation!==pdfEpoch)return;
       pdf=await pdfjsLib.getDocument({data:data}).promise;if(generation!==pdfEpoch)return;
