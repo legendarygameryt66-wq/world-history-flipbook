@@ -45,7 +45,7 @@
 .side{padding-top:4px;display:flex;flex-direction:column;gap:17px}.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:17px;box-shadow:0 5px 18px #162e4408}
 .card h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 13px;color:#7a6a54}.search{display:flex;gap:6px}.search input{width:100%;min-width:0;border:1px solid var(--line);background:white;border-radius:7px;padding:9px 10px;font-size:12px;outline:none}.search input:focus{border-color:#c29b66}
 .search button,.gold-btn{border:0;border-radius:7px;background:var(--blue);color:white;padding:0 12px;cursor:pointer;font-size:12px}.search button:hover,.gold-btn:hover{background:#274964}.search-note{font-size:11px;color:var(--muted);margin-top:9px;min-height:14px;line-height:1.4}
-.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.thumb{border:1px solid var(--line);padding:4px;background:white;border-radius:5px;cursor:pointer;transition:.15s}.thumb:hover{border-color:#c5a16e;transform:translateY(-1px)}.thumb canvas{display:block;width:100%;height:auto;background:#f4f0e8;aspect-ratio:612/783}.thumb span{display:block;font-size:9px;color:var(--muted);text-align:center;padding-top:4px}
+
 .bookmark-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#647380}.bookmark-row strong{color:var(--ink);font-weight:600}.gold-btn{padding:8px 10px;background:#f1e7d7;color:#765a35;font-weight:600}.gold-btn:hover{background:#ead8bc;color:#5a4328}.note{font-size:11px;color:#87919a;line-height:1.5;margin:0}
 #stage:fullscreen{width:100vw;height:100vh;height:100dvh;min-height:0;max-height:none;border:0;border-radius:0;background:radial-gradient(ellipse at center,#273b4d 0%,#101e2a 100%)}
 #stage:fullscreen:before{opacity:.11;background-image:radial-gradient(#ffffff22 .7px,transparent .7px)}
@@ -59,24 +59,17 @@
 .stage-wrap{min-height:480px;border-radius:11px}.book-shell{width:min(82%,360px);aspect-ratio:.782}.stage-arrow{width:36px;height:36px}.stage-arrow.prev{left:8px}.stage-arrow.next{right:8px}
 .toolbar{padding:8px 9px;gap:5px}.tool-group{gap:1px}.toolbtn{width:31px;height:31px}.progress{margin-left:7px;margin-right:5px}.zoom-value{display:none}.side{grid-template-columns:1fr;gap:10px}.side .card:first-child{grid-column:auto}.card{padding:14px}}
 
-.guidebar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;margin:0 2px 12px;padding:11px 14px;border:1px solid var(--line);border-radius:11px;background:#fffdfa;color:#526474;font-size:11px}
-.guidebar strong{color:var(--ink);font-size:12px}.guide-step{display:inline-flex;align-items:center;gap:6px}.guide-step b{width:19px;height:19px;display:inline-grid;place-items:center;border-radius:50%;background:#f0e6d6;color:#806139;font-size:10px}
-.chapter-search{display:block;margin-bottom:10px}.chapter-search input{width:100%;border:1px solid var(--line);border-radius:7px;padding:9px 10px;font-size:12px;outline:none;background:#fff}.chapter-search input:focus{border-color:#c29b66}
-.chapter-hint{font-size:10px;line-height:1.4;color:var(--muted);margin:0 0 9px}.chapter-count{font-size:10px;color:#9a8a73;margin:0 0 6px}.chapter-list{max-height:380px;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:4px;padding-right:3px}
-.chapter-unit{position:sticky;top:0;z-index:1;padding:7px 5px 5px;background:#fffdfa;color:#8a765b;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
-.chapter-link{display:block;width:100%;border:1px solid transparent;border-radius:7px;background:transparent;text-align:left;padding:7px 8px;cursor:pointer}.chapter-link:hover:not(:disabled){background:#f6f2eb;border-color:#e8e0d4}.chapter-link:disabled{opacity:.58;cursor:default}
-.chapter-link.is-current{background:#f3eadb;border-color:#e6d3b5}.chapter-title{display:block;color:var(--ink);font-size:11px;font-weight:600;line-height:1.3}.chapter-meta{display:block;margin-top:3px;color:#89929a;font-size:9px;line-height:1.25}
-.chapter-empty{padding:12px 6px;color:var(--muted);font-size:11px}
-.status{max-width:52%;overflow:hidden;text-overflow:ellipsis}
 
+
+.chapter-card h2{margin-bottom:10px}.chapter-select{width:100%;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);padding:10px 30px 10px 10px;font-size:12px;outline:none}.chapter-select:focus{border-color:#c29b66;box-shadow:0 0 0 2px #c29b6618}.chapter-select:disabled{color:#89929a;background:#f7f5f1}.chapter-hint{font-size:10px;line-height:1.4;color:var(--muted);margin:8px 0 0}.more-tools{padding:0;overflow:hidden}.more-tools summary{cursor:pointer;list-style:none;padding:14px 16px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7a6a54}.more-tools summary::-webkit-details-marker{display:none}.more-tools summary:after{content:"+";float:right;font-size:16px;line-height:12px;color:#9b8b73}.more-tools[open] summary:after{content:"−"}.more-tools-body{padding:0 16px 16px}.mini-tool h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px;color:#7a6a54}.mini-tool+.mini-tool{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}.mini-tool .note{margin-top:12px}.status{max-width:52%;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
 <header class="topbar"><div class="brand"><div class="mark">W</div><div><div class="brand-title">Patterns of Interaction</div><div class="brand-sub">World History · McDougal Littell</div></div></div>
 <div class="top-actions"><input id="pdfFile" type="file" accept="application/pdf,.pdf" hidden><button class="quiet" id="openPdf">＋ &nbsp; Open PDF</button><button class="quiet" id="fullBtn" title="Show only the book full screen">⛶ &nbsp; Full screen</button></div></header>
 <main class="layout"><section class="reader">
-<div class="reader-head"><div><div class="eyebrow">The illustrated world history</div><h1>Patterns of Interaction</h1><p>Choose a chapter or turn through the pages.</p></div><div class="status" id="status">Open your PDF, then choose a chapter</div></div>
-<div class="guidebar" aria-label="How to use the reader"><strong>Start here</strong><span class="guide-step"><b>1</b> Open your PDF</span><span class="guide-step"><b>2</b> Search or choose a chapter</span><span class="guide-step"><b>3</b> Use arrows or drag a page corner</span></div>
+<div class="reader-head"><div><div class="eyebrow">The illustrated world history</div><h1>Patterns of Interaction</h1><p>Choose a chapter, or use the arrows to turn pages.</p></div><div class="status" id="status">Open your PDF, then choose a chapter</div></div>
+
 <div class="stage-wrap" id="stage"><div class="book-shell" id="bookShell"><div class="book-root" id="book"></div></div>
 <button class="stage-arrow prev" id="prevBtn" aria-label="Previous page">‹</button><button class="stage-arrow next" id="nextBtn" aria-label="Next page">›</button>
 <button class="fullscreen-exit" id="fullscreenExit">⤡ &nbsp; Exit full screen</button>
@@ -84,11 +77,11 @@
 <div class="toolbar"><div class="tool-group"><button class="toolbtn" id="prevTool" title="Previous page">‹</button><button class="toolbtn" id="nextTool" title="Next page">›</button><span class="divider"></span><label class="page-jump"><input id="pageInput" type="number" min="1" value="1" disabled aria-label="Page number"><span id="pageTotal">of —</span></label></div>
 <div class="progress" title="Reading progress"><i id="progressBar"></i></div><div class="tool-group"><button class="toolbtn" id="zoomOut" title="Zoom out" disabled>−</button><span class="zoom-value" id="zoomValue">100%</span><button class="toolbtn" id="zoomIn" title="Zoom in" disabled>＋</button><span class="divider"></span><button class="toolbtn" id="fitBtn" title="Fit book to screen" disabled>⌗</button></div></div>
 </section><aside class="side">
-<section class="card chapter-card"><h2>Go to a chapter</h2><label class="chapter-search"><input id="chapterSearch" type="search" placeholder="Find a chapter by title or number" aria-label="Find a chapter"></label><p class="chapter-hint" id="chapterHint">Open your PDF to enable chapter jumps. The list follows the book’s contents.</p><p class="chapter-count" id="chapterCount">36 chapters</p><div class="chapter-list" id="chapterList" aria-label="Chapters"></div></section>
-<section class="card"><h2>Find a word or phrase</h2><form class="search" id="searchForm"><input id="searchInput" placeholder="Search this book…" aria-label="Search this book"><button type="submit">Find</button></form><div class="search-note" id="searchNote">Search scans the book's selectable text.</div></section>
-<section class="card"><h2>Quick pages</h2><div class="thumbs" id="thumbs"></div></section>
-<section class="card"><h2>Your place</h2><div class="bookmark-row"><span>Saved page</span><strong id="savedPage">None</strong></div><button class="gold-btn" id="bookmarkBtn" disabled style="margin-top:12px">Save this page</button></section>
-<section class="card"><p class="note">Open a PDF from your device. The book stays in your browser and is not uploaded to this site. Your page and bookmark are saved on this device. Drag a page corner or use the arrows to turn pages.</p></section>
+<section class="card chapter-card"><h2>Jump to a chapter</h2><select class="chapter-select" id="chapterSelect" aria-label="Choose a chapter" disabled><option value="">Open a PDF first…</option></select><p class="chapter-hint" id="chapterHint">Open a PDF to enable chapter jumps.</p></section>
+<details class="card more-tools"><summary>More tools</summary><div class="more-tools-body">
+<section class="mini-tool"><h2>Find in the book</h2><form class="search" id="searchForm"><input id="searchInput" placeholder="Word or phrase…" aria-label="Search this book"><button type="submit">Find</button></form><div class="search-note" id="searchNote">Searches selectable text in your PDF.</div></section>
+<section class="mini-tool"><h2>Your place</h2><div class="bookmark-row"><span>Saved page</span><strong id="savedPage">None</strong></div><button class="gold-btn" id="bookmarkBtn" disabled style="margin-top:10px">Save this page</button><p class="note">Your PDF and bookmark stay on this device. Use arrows or drag a page corner to turn pages.</p></section>
+</div></details>
 </aside></main>
 <script>
 (() => {
@@ -114,65 +107,45 @@
   }
 
   function refreshChapterSelection() {
-    const active = chapterAtPage(page);
-    document.querySelectorAll(".chapter-link").forEach(button => {
-      const selected = active && Number(button.dataset.chapter) === active.number;
-      button.classList.toggle("is-current", !!selected);
-      if (selected) button.setAttribute("aria-current", "location");
-      else button.removeAttribute("aria-current");
-      button.disabled = !flipbook || busy || preparing || isTurning;
-    });
+    const select=$("chapterSelect");
+    if(!select)return;
+    const active=chapterAtPage(page);
+    select.disabled=!flipbook||busy||preparing||isTurning;
+    if(active&&document.activeElement!==select)select.value=String(active.pdfPage);
+    $("chapterHint").textContent=flipbook?"Select a chapter to jump to its beginning.":"Open a PDF to enable chapter jumps.";
   }
 
-  function renderChapterList(query) {
-    const list = $("chapterList");
-    const filter = (query || "").trim().toLowerCase();
-    list.replaceChildren();
-    let count = 0;
-    for (const unit of chapterUnits) {
-      const matches = unit.chapters.filter(ch =>
-        ("chapter " + ch.number + " " + ch.title + " " + ch.period + " " + ch.bookPage).toLowerCase().includes(filter)
-      );
-      if (!matches.length) continue;
-      const heading = document.createElement("div");
-      heading.className = "chapter-unit";
-      heading.textContent = unit.title;
-      list.appendChild(heading);
-      for (const ch of matches) {
-        count++;
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "chapter-link";
-        button.dataset.chapter = ch.number;
-        button.disabled = !flipbook;
-        const title = document.createElement("span");
-        title.className = "chapter-title";
-        title.textContent = "Chapter " + ch.number + " · " + ch.title;
-        const meta = document.createElement("small");
-        meta.className = "chapter-meta";
-        meta.textContent = ch.period + " · printed page " + ch.bookPage;
-        button.append(title, meta);
-        button.onclick = () => {
-          if (!flipbook) {
-            $("chapterHint").textContent = "Open your PDF first. Then select this chapter to jump to its start.";
-            return;
-          }
-          jumpToPage(ch.pdfPage);
-          $("chapterHint").textContent = "Jumped to Chapter " + ch.number + ".";
-        };
-        list.appendChild(button);
+  function populateChapterSelect() {
+    const select=$("chapterSelect");
+    select.replaceChildren();
+    const prompt=document.createElement("option");
+    prompt.value="";
+    prompt.textContent="Choose a chapter…";
+    prompt.disabled=true;
+    prompt.selected=true;
+    select.appendChild(prompt);
+    for(const unit of chapterUnits) {
+      const group=document.createElement("optgroup");
+      group.label=unit.title;
+      for(const ch of unit.chapters) {
+        const option=document.createElement("option");
+        option.value=String(ch.pdfPage);
+        option.textContent="Chapter "+ch.number+" · "+ch.title+" (book p. "+ch.bookPage+")";
+        group.appendChild(option);
       }
+      select.appendChild(group);
     }
-    $("chapterCount").textContent = filter ? count + (count === 1 ? " match" : " matches") : chapters.length + " chapters";
-    if (!count) {
-      const empty = document.createElement("div");
-      empty.className = "chapter-empty";
-      empty.textContent = "No chapters match. Try a shorter title or chapter number.";
-      list.appendChild(empty);
-    }
+    select.addEventListener("change",async()=>{
+      const ch=chapters.find(item=>item.pdfPage===Number(select.value));
+      if(!ch)return;
+      $("chapterHint").textContent="Opening Chapter "+ch.number+"…";
+      const opened=await jumpToPage(ch.pdfPage);
+      $("chapterHint").textContent=opened?"Chapter "+ch.number+" · "+ch.title:"Could not open that chapter. Please try again.";
+    });
     refreshChapterSelection();
   }
 
+  function updateControls() {
   function updateControls() {
     $("pageInput").value = page;
     $("pageInput").max = total || 1;
@@ -303,19 +276,28 @@
     finally { preparing=false;updateControls(); }
   }
 
-  function jumpToPage(n) {
-    if(!flipbook||busy||isTurning)return;
-    page=clamp(n);flipbook.turnToPage(page-1);syncPage(true);
+  async function jumpToPage(n) {
+    if(!flipbook||busy||preparing||isTurning)return false;
+    const target=clamp(n);
+    preparing=true;
+    updateControls();
+    try {
+      await ensurePages([target-2,target-1,target,target+1,target+2,target+3]);
+      if(!flipbook)return false;
+      page=target;
+      flipbook.turnToPage(target-1);
+      syncPage(true);
+      return true;
+    } catch(e) {
+      console.error(e);
+      return false;
+    } finally {
+      preparing=false;
+      updateControls();
+    }
   }
 
-  async function makeThumb(n) {
-    const box=document.createElement("button"),canvas=document.createElement("canvas"),label=document.createElement("span");
-    box.className="thumb";box.title="Go to page "+n;label.textContent="Page "+n;
-    box.append(canvas,label);box.onclick=()=>jumpToPage(n);$("thumbs").appendChild(box);
-    try { await renderPdfPage(n,canvas,.3,pdfEpoch); } catch(e) {}
-  }
-
-  function startFlipbook() {
+  function startFlipbook() {  function startFlipbook() {
     if(!window.St||!St.PageFlip)throw new Error("The page-turn library did not load.");
     flipbook=new St.PageFlip(bookRoot,{
       width:612,height:783,startPage:page-1,size:"stretch",minWidth:280,maxWidth:900,minHeight:358,maxHeight:1150,
@@ -349,7 +331,6 @@
       const warm=[];for(let n=Math.max(1,page-2);n<=Math.min(total,page+3);n++)warm.push(n);
       await ensurePages(warm);if(generation!==pdfEpoch)return;
       startFlipbook();setBusy(false);
-      for(const n of [1,9,11,13,15,17])if(n<=total)makeThumb(n);
       warmPages();
     } catch(e) {
       console.error(e);setBusy(false);$("loading").classList.remove("hidden");
@@ -393,8 +374,7 @@
     if(!flipbook||resizeFrame)return;
     resizeFrame=requestAnimationFrame(()=>{resizeFrame=0;if(flipbook)flipbook.update();});
   });
-  $("chapterSearch").addEventListener("input", event => renderChapterList(event.target.value));
-  renderChapterList("");
+  populateChapterSelect();
   observer.observe(stage);
   updateControls();
   if(!window.pdfjsLib||!window.St||!St.PageFlip)$("loadingText").textContent="Connect to the internet to load the flipbook reader, then refresh.";
