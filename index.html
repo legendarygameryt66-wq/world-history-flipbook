@@ -58,13 +58,25 @@
 .layout{padding:18px 12px 22px;gap:17px;min-height:calc(100vh - 64px)}.reader-head{margin-bottom:12px}.reader-head p{font-size:11px}.reader-head .status{display:none}
 .stage-wrap{min-height:480px;border-radius:11px}.book-shell{width:min(82%,360px);aspect-ratio:.782}.stage-arrow{width:36px;height:36px}.stage-arrow.prev{left:8px}.stage-arrow.next{right:8px}
 .toolbar{padding:8px 9px;gap:5px}.tool-group{gap:1px}.toolbtn{width:31px;height:31px}.progress{margin-left:7px;margin-right:5px}.zoom-value{display:none}.side{grid-template-columns:1fr;gap:10px}.side .card:first-child{grid-column:auto}.card{padding:14px}}
+
+.guidebar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;margin:0 2px 12px;padding:11px 14px;border:1px solid var(--line);border-radius:11px;background:#fffdfa;color:#526474;font-size:11px}
+.guidebar strong{color:var(--ink);font-size:12px}.guide-step{display:inline-flex;align-items:center;gap:6px}.guide-step b{width:19px;height:19px;display:inline-grid;place-items:center;border-radius:50%;background:#f0e6d6;color:#806139;font-size:10px}
+.chapter-search{display:block;margin-bottom:10px}.chapter-search input{width:100%;border:1px solid var(--line);border-radius:7px;padding:9px 10px;font-size:12px;outline:none;background:#fff}.chapter-search input:focus{border-color:#c29b66}
+.chapter-hint{font-size:10px;line-height:1.4;color:var(--muted);margin:0 0 9px}.chapter-count{font-size:10px;color:#9a8a73;margin:0 0 6px}.chapter-list{max-height:380px;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:4px;padding-right:3px}
+.chapter-unit{position:sticky;top:0;z-index:1;padding:7px 5px 5px;background:#fffdfa;color:#8a765b;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.chapter-link{display:block;width:100%;border:1px solid transparent;border-radius:7px;background:transparent;text-align:left;padding:7px 8px;cursor:pointer}.chapter-link:hover:not(:disabled){background:#f6f2eb;border-color:#e8e0d4}.chapter-link:disabled{opacity:.58;cursor:default}
+.chapter-link.is-current{background:#f3eadb;border-color:#e6d3b5}.chapter-title{display:block;color:var(--ink);font-size:11px;font-weight:600;line-height:1.3}.chapter-meta{display:block;margin-top:3px;color:#89929a;font-size:9px;line-height:1.25}
+.chapter-empty{padding:12px 6px;color:var(--muted);font-size:11px}
+.status{max-width:52%;overflow:hidden;text-overflow:ellipsis}
+
 </style>
 </head>
 <body>
 <header class="topbar"><div class="brand"><div class="mark">W</div><div><div class="brand-title">Patterns of Interaction</div><div class="brand-sub">World History · McDougal Littell</div></div></div>
 <div class="top-actions"><input id="pdfFile" type="file" accept="application/pdf,.pdf" hidden><button class="quiet" id="openPdf">＋ &nbsp; Open PDF</button><button class="quiet" id="fullBtn" title="Show only the book full screen">⛶ &nbsp; Full screen</button></div></header>
 <main class="layout"><section class="reader">
-<div class="reader-head"><div><div class="eyebrow">The illustrated world history</div><h1>Patterns of Interaction</h1><p>Explore the book one page at a time.</p></div><div class="status" id="status">Open a PDF to begin</div></div>
+<div class="reader-head"><div><div class="eyebrow">The illustrated world history</div><h1>Patterns of Interaction</h1><p>Choose a chapter or turn through the pages.</p></div><div class="status" id="status">Open your PDF, then choose a chapter</div></div>
+<div class="guidebar" aria-label="How to use the reader"><strong>Start here</strong><span class="guide-step"><b>1</b> Open your PDF</span><span class="guide-step"><b>2</b> Search or choose a chapter</span><span class="guide-step"><b>3</b> Use arrows or drag a page corner</span></div>
 <div class="stage-wrap" id="stage"><div class="book-shell" id="bookShell"><div class="book-root" id="book"></div></div>
 <button class="stage-arrow prev" id="prevBtn" aria-label="Previous page">‹</button><button class="stage-arrow next" id="nextBtn" aria-label="Next page">›</button>
 <button class="fullscreen-exit" id="fullscreenExit">⤡ &nbsp; Exit full screen</button>
@@ -72,6 +84,7 @@
 <div class="toolbar"><div class="tool-group"><button class="toolbtn" id="prevTool" title="Previous page">‹</button><button class="toolbtn" id="nextTool" title="Next page">›</button><span class="divider"></span><label class="page-jump"><input id="pageInput" type="number" min="1" value="1" disabled aria-label="Page number"><span id="pageTotal">of —</span></label></div>
 <div class="progress" title="Reading progress"><i id="progressBar"></i></div><div class="tool-group"><button class="toolbtn" id="zoomOut" title="Zoom out" disabled>−</button><span class="zoom-value" id="zoomValue">100%</span><button class="toolbtn" id="zoomIn" title="Zoom in" disabled>＋</button><span class="divider"></span><button class="toolbtn" id="fitBtn" title="Fit book to screen" disabled>⌗</button></div></div>
 </section><aside class="side">
+<section class="card chapter-card"><h2>Go to a chapter</h2><label class="chapter-search"><input id="chapterSearch" type="search" placeholder="Find a chapter by title or number" aria-label="Find a chapter"></label><p class="chapter-hint" id="chapterHint">Open your PDF to enable chapter jumps. The list follows the book’s contents.</p><p class="chapter-count" id="chapterCount">36 chapters</p><div class="chapter-list" id="chapterList" aria-label="Chapters"></div></section>
 <section class="card"><h2>Find a word or phrase</h2><form class="search" id="searchForm"><input id="searchInput" placeholder="Search this book…" aria-label="Search this book"><button type="submit">Find</button></form><div class="search-note" id="searchNote">Search scans the book's selectable text.</div></section>
 <section class="card"><h2>Quick pages</h2><div class="thumbs" id="thumbs"></div></section>
 <section class="card"><h2>Your place</h2><div class="bookmark-row"><span>Saved page</span><strong id="savedPage">None</strong></div><button class="gold-btn" id="bookmarkBtn" disabled style="margin-top:12px">Save this page</button></section>
@@ -85,15 +98,93 @@
   let page = 1, total = 0, zoom = 1, busy = false, preparing = false, isTurning = false;
   let pdfEpoch = 0, slots = [], rendered = new Map(), jobs = new Map(), stored = {}, storageKey = "", resizeFrame = 0;
   const clamp = n => Math.max(1, Math.min(total || 1, Math.round(Number(n) || 1)));
+  const chapterUnits = [{"title":"Unit 1 · Beginnings of Civilization","chapters":[{"number":1,"title":"The Peopling of the World","period":"Prehistory–2500 B.C.","bookPage":2},{"number":2,"title":"Early River Valley Civilizations","period":"3500 B.C.–450 B.C.","bookPage":26},{"number":3,"title":"People and Ideas on the Move","period":"2000 B.C.–250 B.C.","bookPage":58},{"number":4,"title":"First Age of Empires","period":"1570 B.C.–200 B.C.","bookPage":86}]},{"title":"Unit 2 · New Directions in Government and Society","chapters":[{"number":5,"title":"Classical Greece","period":"2000 B.C.–300 B.C.","bookPage":120},{"number":6,"title":"Ancient Rome and Early Christianity","period":"500 B.C.–A.D. 500","bookPage":152},{"number":7,"title":"India and China Establish Empires","period":"400 B.C.–A.D. 550","bookPage":186},{"number":8,"title":"African Civilizations","period":"1500 B.C.–A.D. 700","bookPage":210},{"number":9,"title":"The Americas: A Separate World","period":"40,000 B.C.–A.D. 700","bookPage":232}]},{"title":"Unit 3 · An Age of Exchange and Encounter","chapters":[{"number":10,"title":"The Muslim World","period":"600–1250","bookPage":260},{"number":11,"title":"Byzantines, Russians, and Turks Interact","period":"500–1500","bookPage":298},{"number":12,"title":"Empires in East Asia","period":"600–1350","bookPage":320},{"number":13,"title":"European Middle Ages","period":"500–1200","bookPage":350},{"number":14,"title":"The Formation of Western Europe","period":"800–1500","bookPage":376},{"number":15,"title":"Societies and Empires of Africa","period":"800–1500","bookPage":406},{"number":16,"title":"People and Empires in the Americas","period":"500–1500","bookPage":438}]},{"title":"Unit 4 · Connecting Hemispheres","chapters":[{"number":17,"title":"European Renaissance and Reformation","period":"1300–1600","bookPage":468},{"number":18,"title":"The Muslim World Expands","period":"1300–1700","bookPage":504},{"number":19,"title":"An Age of Explorations and Isolation","period":"1400–1800","bookPage":526},{"number":20,"title":"The Atlantic World","period":"1492–1800","bookPage":550}]},{"title":"Unit 5 · Absolutism to Revolution","chapters":[{"number":21,"title":"Absolute Monarchs in Europe","period":"1500–1800","bookPage":586},{"number":22,"title":"Enlightenment and Revolution","period":"1550–1789","bookPage":620},{"number":23,"title":"The French Revolution and Napoleon","period":"1789–1815","bookPage":648},{"number":24,"title":"Nationalist Revolutions Sweep the West","period":"1789–1900","bookPage":678}]},{"title":"Unit 6 · Industrialism and the Race for Empire","chapters":[{"number":25,"title":"The Industrial Revolution","period":"1700–1900","bookPage":714},{"number":26,"title":"An Age of Democracy and Progress","period":"1815–1914","bookPage":744},{"number":27,"title":"The Age of Imperialism","period":"1850–1914","bookPage":770},{"number":28,"title":"Transformations Around the Globe","period":"1800–1914","bookPage":802}]},{"title":"Unit 7 · The World at War","chapters":[{"number":29,"title":"The Great War","period":"1914–1918","bookPage":838},{"number":30,"title":"Revolution and Nationalism","period":"1900–1939","bookPage":864},{"number":31,"title":"Years of Crisis","period":"1919–1939","bookPage":894},{"number":32,"title":"World War II","period":"1939–1945","bookPage":922}]},{"title":"Unit 8 · Perspectives on the Present","chapters":[{"number":33,"title":"Restructuring the Postwar World","period":"1945–Present","bookPage":962},{"number":34,"title":"The Colonies Become New Nations","period":"1945–Present","bookPage":994},{"number":35,"title":"Struggles for Democracy","period":"1945–Present","bookPage":1030},{"number":36,"title":"Global Interdependence","period":"1960–Present","bookPage":1068}]}];
+  const chapters = chapterUnits.flatMap(unit => unit.chapters.map(ch => ({
+    number: ch.number, title: ch.title, period: ch.period, bookPage: ch.bookPage,
+    pdfPage: ch.bookPage + 120, unit: unit.title
+  })));
+
+  function chapterAtPage(n) {
+    let match = null;
+    for (const chapter of chapters) {
+      if (n >= chapter.pdfPage) match = chapter;
+      else break;
+    }
+    return match;
+  }
+
+  function refreshChapterSelection() {
+    const active = chapterAtPage(page);
+    document.querySelectorAll(".chapter-link").forEach(button => {
+      const selected = active && Number(button.dataset.chapter) === active.number;
+      button.classList.toggle("is-current", !!selected);
+      if (selected) button.setAttribute("aria-current", "location");
+      else button.removeAttribute("aria-current");
+      button.disabled = !flipbook || busy || preparing || isTurning;
+    });
+  }
+
+  function renderChapterList(query) {
+    const list = $("chapterList");
+    const filter = (query || "").trim().toLowerCase();
+    list.replaceChildren();
+    let count = 0;
+    for (const unit of chapterUnits) {
+      const matches = unit.chapters.filter(ch =>
+        ("chapter " + ch.number + " " + ch.title + " " + ch.period + " " + ch.bookPage).toLowerCase().includes(filter)
+      );
+      if (!matches.length) continue;
+      const heading = document.createElement("div");
+      heading.className = "chapter-unit";
+      heading.textContent = unit.title;
+      list.appendChild(heading);
+      for (const ch of matches) {
+        count++;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "chapter-link";
+        button.dataset.chapter = ch.number;
+        button.disabled = !flipbook;
+        const title = document.createElement("span");
+        title.className = "chapter-title";
+        title.textContent = "Chapter " + ch.number + " · " + ch.title;
+        const meta = document.createElement("small");
+        meta.className = "chapter-meta";
+        meta.textContent = ch.period + " · printed page " + ch.bookPage;
+        button.append(title, meta);
+        button.onclick = () => {
+          if (!flipbook) {
+            $("chapterHint").textContent = "Open your PDF first. Then select this chapter to jump to its start.";
+            return;
+          }
+          jumpToPage(ch.pdfPage);
+          $("chapterHint").textContent = "Jumped to Chapter " + ch.number + ".";
+        };
+        list.appendChild(button);
+      }
+    }
+    $("chapterCount").textContent = filter ? count + (count === 1 ? " match" : " matches") : chapters.length + " chapters";
+    if (!count) {
+      const empty = document.createElement("div");
+      empty.className = "chapter-empty";
+      empty.textContent = "No chapters match. Try a shorter title or chapter number.";
+      list.appendChild(empty);
+    }
+    refreshChapterSelection();
+  }
 
   function updateControls() {
     $("pageInput").value = page;
     $("pageInput").max = total || 1;
     $("pageTotal").textContent = "of " + (total || "—");
     const end = flipbook && page > 1 && flipbook.getOrientation() === "landscape" ? Math.min(total, page + 1) : page;
-    $("status").textContent = total ? (end > page ? "Pages " + page.toLocaleString() + "–" + end.toLocaleString() + " of " + total.toLocaleString() : "Page " + page.toLocaleString() + " of " + total.toLocaleString()) : "Open a PDF to begin";
+    const activeChapter = chapterAtPage(page);
+    $("status").textContent = total
+      ? (activeChapter ? "Chapter " + activeChapter.number + " · " + activeChapter.title + " · PDF page " + page.toLocaleString() : "PDF page " + page.toLocaleString()) + " of " + total.toLocaleString()
+      : "Open your PDF, then choose a chapter";
     $("progressBar").style.width = total ? (end / total * 100) + "%" : "0%";
     const locked = busy || preparing || isTurning || !flipbook;
+    refreshChapterSelection();
     $("prevBtn").disabled = $("prevTool").disabled = locked || page <= 1;
     $("nextBtn").disabled = $("nextTool").disabled = locked || page >= total;
     $("savedPage").textContent = stored.bookmark ? "Page " + stored.bookmark : "None";
@@ -302,6 +393,8 @@
     if(!flipbook||resizeFrame)return;
     resizeFrame=requestAnimationFrame(()=>{resizeFrame=0;if(flipbook)flipbook.update();});
   });
+  $("chapterSearch").addEventListener("input", event => renderChapterList(event.target.value));
+  renderChapterList("");
   observer.observe(stage);
   updateControls();
   if(!window.pdfjsLib||!window.St||!St.PageFlip)$("loadingText").textContent="Connect to the internet to load the flipbook reader, then refresh.";
