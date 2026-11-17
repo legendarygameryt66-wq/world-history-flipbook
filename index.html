@@ -108,7 +108,7 @@
       pdf=await pdfjsLib.getDocument({data}).promise;total=pdf.numPages;
       activeStorageKey='worldHistoryFlipbook:'+file.name+':'+file.size;
       try{stored=JSON.parse(localStorage.getItem(activeStorageKey)||'{}')}catch{stored={}}
-      page=clamp(Number(stored.page)||1);updateControls();await start();['zoomIn','zoomOut','fitBtn','bookmarkBtn','pageInput'].forEach(id=>$(id).disabled=false);
+      page=clamp(Number(stored.page)||1);updateControls();await start();['zoomIn','zoomOut','fitBtn','bookmarkBtn','pageInput'].forEach(id=>$(id).disabled=false);setBusy(false);
       for(const n of [1,9,11,13,15,17])if(n<=total)makeThumb(n);
     }catch(e){console.error(e);setBusy(false);$('loading').classList.remove('hidden');$('loadingText').textContent='This PDF could not be opened. Choose a valid PDF file and try again.'}
   }
