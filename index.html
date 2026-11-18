@@ -245,35 +245,60 @@ try {
   }
 
   function spatialTextLines(content) {
-    const groups = [];
+    const items = [];
     let sequence = 0;
     for (const item of content.items || []) {
       if (!item || typeof item.str !== "string") continue;
       const text = item.str.replace(/\s+/g, " ").trim();
       if (!text) continue;
       const transform = item.transform;
+      const x = transform && Number.isFinite(transform[4]) ? transform[4] : sequence * 8;
       const y = transform && Number.isFinite(transform[5]) ? transform[5] : null;
-      const x = transform && Number.isFinite(transform[4]) ? transform[4] : sequence;
+      const width = Math.abs(Number(item.width)) || Math.max(4, text.length * 5);
       const height = Number(item.height) || 0;
       for (const part of text.split(/\n+/).map(value => value.trim()).filter(Boolean)) {
-        let group = y === null ? null : groups.find(line => line.y !== null && Math.abs(line.y - y) < 3.5 && Math.abs(line.x - x) < 90);
-        if (!group) {
-          group = { y: y, x: x, sequence: sequence++, height: height, parts: [] };
-          groups.push(group);
-        }
-        group.height = Math.max(group.height, height);
-        group.parts.push({ x: x, text: part });
+        items.push({ x: x, y: y, width: width, height: height, text: part, sequence: sequence++ });
       }
     }
-    groups.sort((a, b) => {
+    items.sort((a, b) => {
       if (a.y === null || b.y === null) return a.sequence - b.sequence;
-      return b.y - a.y || a.x - b.x;
+      return b.y - a.y || a.x - b.x || a.sequence - b.sequence;
     });
-    return groups.map(group => ({
-      text: group.parts.sort((a, b) => a.x - b.x).map(part => part.text).join(" ").replace(/\s+/g, " ").trim(),
-      y: group.y,
-      x: group.x,
-      height: group.height
+    const rows = [];
+    for (const item of items) {
+      let row = item.y === null ? null : rows.find(candidate => candidate.y !== null && Math.abs(candidate.y - item.y) < 3.5);
+      if (!row) {
+        row = { y: item.y, items: [], sequence: item.sequence };
+        rows.push(row);
+      }
+      row.items.push(item);
+    }
+    rows.sort((a, b) => {
+      if (a.y === null || b.y === null) return a.sequence - b.sequence;
+      return b.y - a.y || a.sequence - b.sequence;
+    });
+    const lines = [];
+    for (const row of rows) {
+      row.items.sort((a, b) => a.x - b.x || a.sequence - b.sequence);
+      let segment = null;
+      for (const item of row.items) {
+        const gap = segment ? item.x - segment.endX : 0;
+        if (!segment || gap > 22) {
+          if (segment) lines.push(segment);
+          segment = { y: row.y, x: item.x, endX: item.x + item.width, height: item.height, sequence: item.sequence, parts: [item.text] };
+        } else {
+          segment.parts.push(item.text);
+          segment.endX = Math.max(segment.endX, item.x + item.width);
+          segment.height = Math.max(segment.height, item.height);
+        }
+      }
+      if (segment) lines.push(segment);
+    }
+    return lines.map(line => ({
+      text: line.parts.join(" ").replace(/\s+/g, " ").trim(),
+      y: line.y,
+      x: line.x,
+      height: line.height
     }));
   }
 
