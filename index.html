@@ -283,6 +283,8 @@ try {
 
   function parseContentsChapterEntries(lines) {
     const entries = [];
+    const pageHeading = lines.slice(0, 10).join(" ").toLowerCase();
+    if (/primary and secondary sources|primary sources|secondary sources|bibliography|works cited|index/.test(pageHeading)) return entries;
     const marker = /^\s*chapter\s+(\d{1,3}|[ivxlcdm]{1,8}|one|first|two|second|three|third|four|fourth|five|fifth|six|sixth|seven|seventh|eight|eighth|nine|ninth|ten|tenth|eleven|twelve|twelfth|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b\s*[:.·—–-]?\s*(.*)$/i;
     const bullet = /^\s*chapter\s*[●•·]\s*$/i;
     const dateLine = /prehistory|present|B\.?\s*C\.?|A\.?\s*D\.?|\d{3,4}\s*[–—-]\s*\d{2,4}/i;
@@ -320,6 +322,7 @@ try {
       if (!printedPage || printedPage < 1) continue;
       const title = titleParts.filter(part => part && !dateLine.test(part) &&
         !/^\d{1,3}\s*(?:B\.?C\.?|A\.?D\.?)?$/i.test(part)).pop() || "";
+      if (/,\s|quoted in|speech|letter to|from the|interview|diary|journal|memoir|article in|primary source/i.test(title)) continue;
       entries.push({ number: number, title: title, printedPage: printedPage });
     }
     return entries;
