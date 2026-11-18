@@ -142,7 +142,7 @@ try {
   syncThemeButton();
 
   let bookRoot = $("book"), pdf = null, flipbook = null;
-  let page = 1, total = 0, zoom = 1, busy = false, preparing = false, isTurning = false;
+  let page = 1, total = 0, zoom = 1, busy = false, preparing = false, isTurning = false, navigationTarget = null;
   let pdfEpoch = 0, slots = [], rendered = new Map(), jobs = new Map(), stored = {}, storageKey = "", resizeFrame = 0;
   const clamp = n => Math.max(1, Math.min(total || 1, Math.round(Number(n) || 1)));
   const chapterUnits = [{"title":"Unit 1 · Beginnings of Civilization","chapters":[{"number":1,"title":"The Peopling of the World","period":"Prehistory–2500 B.C.","bookPage":2},{"number":2,"title":"Early River Valley Civilizations","period":"3500 B.C.–450 B.C.","bookPage":26},{"number":3,"title":"People and Ideas on the Move","period":"2000 B.C.–250 B.C.","bookPage":58},{"number":4,"title":"First Age of Empires","period":"1570 B.C.–200 B.C.","bookPage":86}]},{"title":"Unit 2 · New Directions in Government and Society","chapters":[{"number":5,"title":"Classical Greece","period":"2000 B.C.–300 B.C.","bookPage":120},{"number":6,"title":"Ancient Rome and Early Christianity","period":"500 B.C.–A.D. 500","bookPage":152},{"number":7,"title":"India and China Establish Empires","period":"400 B.C.–A.D. 550","bookPage":186},{"number":8,"title":"African Civilizations","period":"1500 B.C.–A.D. 700","bookPage":210},{"number":9,"title":"The Americas: A Separate World","period":"40,000 B.C.–A.D. 700","bookPage":232}]},{"title":"Unit 3 · An Age of Exchange and Encounter","chapters":[{"number":10,"title":"The Muslim World","period":"600–1250","bookPage":260},{"number":11,"title":"Byzantines, Russians, and Turks Interact","period":"500–1500","bookPage":298},{"number":12,"title":"Empires in East Asia","period":"600–1350","bookPage":320},{"number":13,"title":"European Middle Ages","period":"500–1200","bookPage":350},{"number":14,"title":"The Formation of Western Europe","period":"800–1500","bookPage":376},{"number":15,"title":"Societies and Empires of Africa","period":"800–1500","bookPage":406},{"number":16,"title":"People and Empires in the Americas","period":"500–1500","bookPage":438}]},{"title":"Unit 4 · Connecting Hemispheres","chapters":[{"number":17,"title":"European Renaissance and Reformation","period":"1300–1600","bookPage":468},{"number":18,"title":"The Muslim World Expands","period":"1300–1700","bookPage":504},{"number":19,"title":"An Age of Explorations and Isolation","period":"1400–1800","bookPage":526},{"number":20,"title":"The Atlantic World","period":"1492–1800","bookPage":550}]},{"title":"Unit 5 · Absolutism to Revolution","chapters":[{"number":21,"title":"Absolute Monarchs in Europe","period":"1500–1800","bookPage":586},{"number":22,"title":"Enlightenment and Revolution","period":"1550–1789","bookPage":620},{"number":23,"title":"The French Revolution and Napoleon","period":"1789–1815","bookPage":648},{"number":24,"title":"Nationalist Revolutions Sweep the West","period":"1789–1900","bookPage":678}]},{"title":"Unit 6 · Industrialism and the Race for Empire","chapters":[{"number":25,"title":"The Industrial Revolution","period":"1700–1900","bookPage":714},{"number":26,"title":"An Age of Democracy and Progress","period":"1815–1914","bookPage":744},{"number":27,"title":"The Age of Imperialism","period":"1850–1914","bookPage":770},{"number":28,"title":"Transformations Around the Globe","period":"1800–1914","bookPage":802}]},{"title":"Unit 7 · The World at War","chapters":[{"number":29,"title":"The Great War","period":"1914–1918","bookPage":838},{"number":30,"title":"Revolution and Nationalism","period":"1900–1939","bookPage":864},{"number":31,"title":"Years of Crisis","period":"1919–1939","bookPage":894},{"number":32,"title":"World War II","period":"1939–1945","bookPage":922}]},{"title":"Unit 8 · Perspectives on the Present","chapters":[{"number":33,"title":"Restructuring the Postwar World","period":"1945–Present","bookPage":962},{"number":34,"title":"The Colonies Become New Nations","period":"1945–Present","bookPage":994},{"number":35,"title":"Struggles for Democracy","period":"1945–Present","bookPage":1030},{"number":36,"title":"Global Interdependence","period":"1960–Present","bookPage":1068}]}];
@@ -248,7 +248,8 @@ try {
 
   function trimCache() {
     if (rendered.size <= 8) return;
-    const keep = new Set(Array.from(rendered.keys()).sort((a,b) => Math.abs(a-page)-Math.abs(b-page)).slice(0,8));
+    const anchor = navigationTarget || page;
+    const keep = new Set(Array.from(rendered.keys()).sort((a,b) => Math.abs(a-anchor)-Math.abs(b-anchor)).slice(0,8));
     for (const n of rendered.keys()) {
       if (keep.has(n)) continue;
       const slot = slots[n-1];
@@ -325,25 +326,30 @@ try {
     try {
       await ensurePages(dir>0?[page+1,page+2,page+3]:[page-1,page-2,page-3]);
       if(flipbook)dir>0?flipbook.flipNext("bottom"):flipbook.flipPrev("bottom");
-    } catch(e) { console.error(e); }
-    finally { preparing=false;updateControls(); }
-  }
-
-  async function jumpToPage(n) {
+    } catch(e) { c  async function jumpToPage(n) {
     if(!flipbook||busy||preparing||isTurning)return false;
-    const target=clamp(n);
+    const target=clamp(n), generation=pdfEpoch, activeFlipbook=flipbook;
     preparing=true;
+    navigationTarget=target;
     updateControls();
     try {
       await ensurePages([target-2,target-1,target,target+1,target+2,target+3]);
-      if(!flipbook)return false;
-      page=target;
-      flipbook.turnToPage(target-1);
+      if(generation!==pdfEpoch||flipbook!==activeFlipbook)return false;
+      activeFlipbook.turnToPage(target-1);
       syncPage(true);
       return true;
     } catch(e) {
       console.error(e);
       return false;
+    } finally {
+      if(generation===pdfEpoch&&flipbook===activeFlipbook) {
+        preparing=false;
+        navigationTarget=null;
+        updateControls();
+      }
+    }
+  }
+
     } finally {
       preparing=false;
       updateControls();
@@ -373,7 +379,7 @@ try {
     try {
       if(flipbook){flipbook.destroy();flipbook=null;}
       if(pdf){try{await pdf.destroy();}catch(e){}}
-      pdf=null;total=0;page=1;isTurning=false;preparing=false;stored={};
+      pdf=null;total=0;page=1;isTurning=false;preparing=false;navigationTarget=null;stored={};
 $("searchNote").textContent="Searches selectable text in your PDF.";
       rebuildBookRoot();
       const data=new Uint8Array(await file.arrayBuffer());if(generation!==pdfEpoch)return;
