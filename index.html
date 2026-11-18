@@ -244,9 +244,7 @@ try {
     return dedupeChapters(selected, false);
   }
 
-  async function textHeadingOnPage(doc, pageNumber) {
-    const pdfPage = await doc.getPage(pageNumber);
-    const content = await pdfPage.getTextContent({ includeMarkedContent: false });
+  function spatialTextLines(content) {
     const groups = [];
     let sequence = 0;
     for (const item of content.items || []) {
@@ -256,12 +254,14 @@ try {
       const transform = item.transform;
       const y = transform && Number.isFinite(transform[5]) ? transform[5] : null;
       const x = transform && Number.isFinite(transform[4]) ? transform[4] : sequence;
+      const height = Number(item.height) || 0;
       for (const part of text.split(/\n+/).map(value => value.trim()).filter(Boolean)) {
-        let group = y === null ? null : groups.find(line => line.y !== null && Math.abs(line.y - y) < 3.5);
+        let group = y === null ? null : groups.find(line => line.y !== null && Math.abs(line.y - y) < 3.5 && Math.abs(line.x - x) < 90);
         if (!group) {
-          group = { y: y, x: x, sequence: sequence++, parts: [] };
+          group = { y: y, x: x, sequence: sequence++, height: height, parts: [] };
           groups.push(group);
         }
+        group.height = Math.max(group.height, height);
         group.parts.push({ x: x, text: part });
       }
     }
@@ -269,18 +269,110 @@ try {
       if (a.y === null || b.y === null) return a.sequence - b.sequence;
       return b.y - a.y || a.x - b.x;
     });
-    const lines = groups.map(group => group.parts.sort((a, b) => a.x - b.x).map(part => part.text).join(" "));
+    return groups.map(group => ({
+      text: group.parts.sort((a, b) => a.x - b.x).map(part => part.text).join(" ").replace(/\s+/g, " ").trim(),
+      y: group.y,
+      x: group.x,
+      height: group.height
+    }));
+  }
+
+  function orderedTextLines(content) {
+    const lines = [];
+    let current = "";
+    for (const item of content.items || []) {
+      if (!item || typeof item.str !== "string") continue;
+      const text = item.str.replace(/\s+/g, " ").trim();
+      if (text) current += (current ? " " : "") + text;
+      if (item.hasEOL && current) {
+        lines.push(current.trim());
+        current = "";
+      }
+    }
+    if (current) lines.push(current.trim());
+    return lines.length >= 3 ? lines : spatialTextLines(content).map(line => line.text).filter(Boolean);
+  }
+
+  function parseContentsChapterEntries(lines) {
+    const entries = [];
+    const marker = /^\s*chapter\s+(\d{1,3}|[ivxlcdm]{1,8}|one|first|two|second|three|third|four|fourth|five|fifth|six|sixth|seven|seventh|eight|eighth|nine|ninth|ten|tenth|eleven|twelve|twelfth|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b\s*[:.·—–-]?\s*(.*)$/i;
+    const bullet = /^\s*chapter\s*[●•·]\s*$/i;
+    const dateLine = /\b(?:B\.?\s*C\.?|A\.?\s*D\.?|B\.?\s*C\.?\s*E\.?)\b|\d{3,4}\s*[–—-]\s*\d{2,4}/i;
+    const numberPattern = /^(?:\d{1,3}|[ivxlcdm]{1,8}|one|first|two|second|three|third|four|fourth|five|fifth|six|sixth|seven|seventh|eight|eighth|nine|ninth|ten|tenth|eleven|twelve|twelfth|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b/i;
+    for (let index = 0; index < lines.length; index++) {
+      const line = String(lines[index] || "").replace(/\s+/g, " ").trim();
+      let match = line.match(marker);
+      let number = null;
+      let inlineTitle = "";
+      let cursor = index + 1;
+      if (match) {
+        const parsed = parseChapterTitle("Chapter " + match[1]);
+        number = parsed.number;
+        inlineTitle = match[2].trim();
+      } else if (bullet.test(line)) {
+        const next = String(lines[index + 1] || "").replace(/\s+/g, " ").trim();
+        const numMatch = next.match(/^(\d{1,3}|[ivxlcdm]{1,8}|one|first|two|second|three|third|four|fourth|five|fifth|six|sixth|seven|seventh|eight|eighth|nine|ninth|ten|tenth|eleven|twelve|twelfth|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b\s*(.*)$/i);
+        if (!numMatch) continue;
+        number = normalizedChapterNumber(numMatch[1]);
+        inlineTitle = numMatch[2].trim();
+        cursor = index + 2;
+      } else continue;
+
+      const titleParts = [];
+      if (inlineTitle) titleParts.push(inlineTitle);
+      let printedPage = null;
+      for (let next = cursor; next < Math.min(lines.length, cursor + 8); next++) {
+        const candidate = String(lines[next] || "").replace(/\s+/g, " ").trim();
+        if (!candidate) continue;
+        if (/^chapter\b/i.test(candidate) || bullet.test(candidate)) break;
+        if (/^\d{1,4}$/.test(candidate)) {
+          printedPage = Number(candidate);
+          break;
+        }
+        titleParts.push(candidate);
+      }
+      if (!printedPage || printedPage < 1) continue;
+      const title = titleParts.filter(part => part && !dateLine.test(part) &&
+        !/^\d{1,3}\s*(?:B\.?C\.?|A\.?D\.?)?$/i.test(part)).pop() || "";
+      entries.push({ number: number, title: title, printedPage: printedPage });
+    }
+    return entries;
+  }
+
+  function printedPageFromContent(pdfPage, content) {
+    const view = pdfPage.view || [0, 0, 612, 792];
+    const height = Math.abs(view[3] - view[1]) || 792;
+    const candidates = [];
+    for (const item of content.items || []) {
+      if (!item || typeof item.str !== "string") continue;
+      const value = item.str.trim();
+      if (!/^\d{1,4}$/.test(value) || !item.transform || !Number.isFinite(item.transform[5])) continue;
+      const ratio = (item.transform[5] - view[1]) / height;
+      if (ratio < 0.14 || ratio > 0.86) continue;
+      candidates.push({ value: Number(value), distance: Math.min(ratio, 1 - ratio) });
+    }
+    candidates.sort((a, b) => a.distance - b.distance);
+    return candidates.length ? candidates[0].value : null;
+  }
+
+  async function textHeadingOnPage(doc, pageNumber, pdfPage, content) {
+    pdfPage = pdfPage || await doc.getPage(pageNumber);
+    content = content || await pdfPage.getTextContent({ includeMarkedContent: false });
+    const lines = spatialTextLines(content).map(line => line.text);
     const marker = /^\s*(?:chapter|chap\.?)\s+(\d{1,3}|[ivxlcdm]{1,8}|one|first|two|second|three|third|four|fourth|five|fifth|six|sixth|seven|seventh|eight|eighth|nine|ninth|ten|tenth|eleven|twelve|twelfth|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b\s*[:.·—–-]?\s*(.*)$/i;
+    const markerCount = lines.slice(0, 18).filter(line => marker.test(line)).length;
+    if (markerCount > 1) return null;
     for (let index = 0; index < Math.min(lines.length, 18); index++) {
-      const candidate = lines[index] + (lines[index + 1] ? " " + lines[index + 1] : "");
-      const match = candidate.match(marker);
+      const match = lines[index].match(marker);
       if (!match) continue;
       const number = normalizedChapterNumber(match[1]);
       let title = match[2].trim();
+      if (/^chapter\s+/i.test(title)) return null;
       if (!title) {
         for (let next = index + 1; next < Math.min(lines.length, index + 4); next++) {
           const line = lines[next].trim();
-          if (line && !/^chapter\s+/i.test(line) && line.length > 2) { title = line; break; }
+          if (/^chapter\s+/i.test(line)) return null;
+          if (line && line.length > 2) { title = line; break; }
         }
       }
       title = title.replace(/\s+/g, " ").trim();
@@ -290,25 +382,68 @@ try {
     return null;
   }
 
+  async function inferChapterTitle(doc, pageNumber) {
+    try {
+      const pdfPage = await doc.getPage(pageNumber);
+      const content = await pdfPage.getTextContent({ includeMarkedContent: false });
+      const lines = spatialTextLines(content);
+      const heights = lines.map(line => line.height).filter(value => value > 0).sort((a, b) => a - b);
+      const median = heights.length ? heights[Math.floor(heights.length / 2)] : 0;
+      const match = lines.filter(line => line.text.length >= 4 && line.text.length <= 90 &&
+        line.height >= Math.max(14, median * 1.4) &&
+        !/^(chapter|previewing main ideas|main ideas|geography|economics|science and technology|interaction with environment)\b/i.test(line.text))
+        .sort((a, b) => b.height - a.height)[0];
+      return match ? match.text : "";
+    } catch (error) { return ""; }
+  }
+
   async function scanTextForChapters(doc, generation) {
     const found = [];
+    const contents = [];
+    const printedPages = new Map();
     let nextPage = 1;
     let scanned = 0;
+    const tocLimit = Math.min(doc.numPages, 180);
     const worker = async () => {
       while (generation === pdfEpoch) {
         const pageNumber = nextPage++;
         if (pageNumber > doc.numPages) return;
         try {
-          const heading = await textHeadingOnPage(doc, pageNumber);
+          const pdfPage = await doc.getPage(pageNumber);
+          const content = await pdfPage.getTextContent({ includeMarkedContent: false });
+          const printed = printedPageFromContent(pdfPage, content);
+          if (printed && !printedPages.has(printed)) printedPages.set(printed, pageNumber);
+          if (pageNumber <= tocLimit) contents.push(...parseContentsChapterEntries(orderedTextLines(content)));
+          const heading = await textHeadingOnPage(doc, pageNumber, pdfPage, content);
           if (heading) found.push(heading);
         } catch (error) {}
         scanned++;
         if (scanned % 32 === 0 && generation === pdfEpoch) {
-          $("chapterHint").textContent = "Finding chapter starts… scanned " + scanned + " of " + doc.numPages + " pages.";
+          $("chapterHint").textContent = "Reading contents and chapter starts… " + scanned + " of " + doc.numPages + " pages.";
         }
       }
     };
     await Promise.all(Array.from({ length: Math.min(4, doc.numPages) }, worker));
+    if (generation !== pdfEpoch) return [];
+    const fromContents = [];
+    for (const item of contents) {
+      const pdfPage = printedPages.get(item.printedPage);
+      if (!pdfPage) continue;
+      fromContents.push({
+        number: item.number,
+        title: item.title || await inferChapterTitle(doc, pdfPage) || "Chapter " + item.number,
+        pdfPage: pdfPage,
+        depth: 0
+      });
+    }
+    const best = new Map();
+    for (const item of fromContents.sort((a, b) => a.pdfPage - b.pdfPage)) {
+      const key = String(item.number) + "@" + item.pdfPage;
+      const previous = best.get(key);
+      if (!previous || (item.title.length > previous.title.length && !/^Chapter\s+\w+$/i.test(item.title))) best.set(key, item);
+    }
+    const contentsChapters = Array.from(best.values());
+    if (contentsChapters.length >= 2) return dedupeChapters(contentsChapters, true);
     return dedupeChapters(found, true);
   }
 
