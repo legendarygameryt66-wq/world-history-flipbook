@@ -73,7 +73,7 @@ try {
 
 
 
-.chapter-card h2{margin-bottom:10px}.chapter-select{width:100%;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);padding:10px 30px 10px 10px;font-size:12px;outline:none}.chapter-select:focus{border-color:#c29b66;box-shadow:0 0 0 2px #c29b6618}.chapter-select:disabled{color:#89929a;background:#f7f5f1}.chapter-hint{font-size:10px;line-height:1.4;color:var(--muted);margin:8px 0 0}.more-tools{padding:0;overflow:hidden}.more-tools summary{cursor:pointer;list-style:none;padding:14px 16px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7a6a54}.more-tools summary::-webkit-details-marker{display:none}.more-tools summary:after{content:"+";float:right;font-size:16px;line-height:12px;color:#9b8b73}.more-tools[open] summary:after{content:"−"}.more-tools-body{padding:0 16px 16px}.mini-tool h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px;color:#7a6a54}.mini-tool+.mini-tool{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}.mini-tool .note{margin-top:12px}.status{max-width:52%;overflow:hidden;text-overflow:ellipsis}
+.chapter-row{display:flex;gap:6px;align-items:center}.chapter-row .chapter-select{flex:1;min-width:0}.chapter-open{border:0;border-radius:7px;background:var(--blue);color:#fff;padding:10px 11px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}.chapter-open:disabled{opacity:.48;cursor:not-allowed}.chapter-card h2{margin-bottom:10px}.chapter-select{width:100%;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);padding:10px 30px 10px 10px;font-size:12px;outline:none}.chapter-select:focus{border-color:#c29b66;box-shadow:0 0 0 2px #c29b6618}.chapter-select:disabled{color:#89929a;background:#f7f5f1}.chapter-hint{font-size:10px;line-height:1.4;color:var(--muted);margin:8px 0 0}.more-tools{padding:0;overflow:hidden}.more-tools summary{cursor:pointer;list-style:none;padding:14px 16px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7a6a54}.more-tools summary::-webkit-details-marker{display:none}.more-tools summary:after{content:"+";float:right;font-size:16px;line-height:12px;color:#9b8b73}.more-tools[open] summary:after{content:"−"}.more-tools-body{padding:0 16px 16px}.mini-tool h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 10px;color:#7a6a54}.mini-tool+.mini-tool{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}.mini-tool .note{margin-top:12px}.status{max-width:52%;overflow:hidden;text-overflow:ellipsis}
 
 .theme-toggle{width:34px;height:34px;display:grid;place-items:center;padding:0!important;font-size:17px}
 @media(max-width:600px){.top-actions .theme-toggle{width:32px;min-width:32px;padding:0!important}}
@@ -114,7 +114,7 @@ try {
 <div class="toolbar"><div class="tool-group"><button class="toolbtn" id="prevTool" title="Previous page">‹</button><button class="toolbtn" id="nextTool" title="Next page">›</button><span class="divider"></span><label class="page-jump"><input id="pageInput" type="number" min="1" value="1" disabled aria-label="Page number"><span id="pageTotal">of —</span></label></div>
 <div class="progress" title="Reading progress"><i id="progressBar"></i></div><div class="tool-group"><button class="toolbtn" id="zoomOut" title="Zoom out" disabled>−</button><span class="zoom-value" id="zoomValue">100%</span><button class="toolbtn" id="zoomIn" title="Zoom in" disabled>＋</button><span class="divider"></span><button class="toolbtn" id="fitBtn" title="Fit book to screen" disabled>⌗</button></div></div>
 </section><aside class="side">
-<section class="card chapter-card"><h2>Jump to a chapter</h2><select class="chapter-select" id="chapterSelect" aria-label="Choose a chapter" disabled><option value="">Open a PDF first…</option></select><p class="chapter-hint" id="chapterHint">Open a PDF to enable chapter jumps.</p></section>
+<section class="card chapter-card"><h2>Jump to a chapter</h2><div class="chapter-row"><select class="chapter-select" id="chapterSelect" aria-label="Choose a chapter" disabled><option value="">Open a PDF first…</option></select><button class="chapter-open" id="chapterJumpBtn" type="button" aria-label="Go to selected chapter" disabled>Go</button></div><p class="chapter-hint" id="chapterHint">Open a PDF to enable chapter jumps.</p></section>
 <details class="card more-tools"><summary>More tools</summary><div class="more-tools-body">
 <section class="mini-tool"><h2>Find in the book</h2><form class="search" id="searchForm"><input id="searchInput" placeholder="Word or phrase…" aria-label="Search this book"><button type="submit">Find</button></form><div class="search-note" id="searchNote">Searches selectable text in your PDF.</div></section>
 <section class="mini-tool"><h2>Your place</h2><div class="bookmark-row"><span>Saved page</span><strong id="savedPage">None</strong></div><button class="gold-btn" id="bookmarkBtn" disabled style="margin-top:10px">Save this page</button><p class="note">Your PDF and bookmark stay on this device. Use arrows or drag a page corner to turn pages.</p></section>
@@ -161,12 +161,16 @@ try {
   }
 
   function refreshChapterSelection() {
-    const select=$("chapterSelect");
+    const select=$("chapterSelect"), jumpButton=$("chapterJumpBtn");
     if(!select)return;
     const active=chapterAtPage(page);
     select.disabled=!flipbook||busy||preparing||isTurning;
-    if(active&&document.activeElement!==select)select.value=String(active.pdfPage);
-    if(!flipbook)$("chapterHint").textContent="Open a PDF to enable chapter jumps.";else if(!preparing&&!isTurning)$("chapterHint").textContent="Select a chapter to jump to its beginning.";
+    jumpButton.disabled=!flipbook||busy||preparing||isTurning;
+    if(navigationTarget)select.value=String(navigationTarget);
+    else if(active&&document.activeElement!==select)select.value=String(active.pdfPage);
+    const selected=chapters.find(item=>item.pdfPage===Number(select.value));
+    if(!flipbook)$("chapterHint").textContent="Open a PDF to enable chapter jumps.";
+    else if(!preparing&&!isTurning)$("chapterHint").textContent=selected?"Press Go to open Chapter "+selected.number+" · "+selected.title:"Choose a chapter, then press Go.";
   }
 
   function populateChapterSelect() {
@@ -189,14 +193,25 @@ try {
       }
       select.appendChild(group);
     }
-    select.addEventListener("change",async()=>{
+    const updateHint=()=>{
       const ch=chapters.find(item=>item.pdfPage===Number(select.value));
-      if(!ch)return;
-      $("chapterHint").textContent="Opening Chapter "+ch.number+"…";
-      const opened=await jumpToPage(ch.pdfPage);
-      $("chapterHint").textContent=opened?"Chapter "+ch.number+" · "+ch.title:"Could not open that chapter. Please try again.";
-    });
+      if(ch)$("chapterHint").textContent="Press Go to open Chapter "+ch.number+" · "+ch.title;
+    };
+    select.addEventListener("input",updateHint);
+    select.addEventListener("change",updateHint);
+    $("chapterJumpBtn").addEventListener("click",openSelectedChapter);
     refreshChapterSelection();
+  }
+
+  async function openSelectedChapter() {
+    if(!flipbook||busy||preparing||isTurning)return false;
+    const select=$("chapterSelect");
+    const ch=chapters.find(item=>item.pdfPage===Number(select.value));
+    if(!ch){$("chapterHint").textContent="Choose a chapter first.";return false;}
+    $("chapterHint").textContent="Opening Chapter "+ch.number+"…";
+    const opened=await jumpToPage(ch.pdfPage);
+    $("chapterHint").textContent=opened?"Chapter "+ch.number+" · "+ch.title:"Could not open that chapter. Please try again.";
+    return opened;
   }
 
   function updateControls() {
