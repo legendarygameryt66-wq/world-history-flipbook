@@ -145,11 +145,39 @@ try {
   let page = 1, total = 0, zoom = 1, busy = false, preparing = false, isTurning = false, navigationTarget = null;
   let pdfEpoch = 0, slots = [], rendered = new Map(), jobs = new Map(), stored = {}, storageKey = "", resizeFrame = 0;
   const clamp = n => Math.max(1, Math.min(total || 1, Math.round(Number(n) || 1)));
-  const chapterUnits = [{"title":"Unit 1 · Beginnings of Civilization","chapters":[{"number":1,"title":"The Peopling of the World","period":"Prehistory–2500 B.C.","bookPage":2},{"number":2,"title":"Early River Valley Civilizations","period":"3500 B.C.–450 B.C.","bookPage":26},{"number":3,"title":"People and Ideas on the Move","period":"2000 B.C.–250 B.C.","bookPage":58},{"number":4,"title":"First Age of Empires","period":"1570 B.C.–200 B.C.","bookPage":86}]},{"title":"Unit 2 · New Directions in Government and Society","chapters":[{"number":5,"title":"Classical Greece","period":"2000 B.C.–300 B.C.","bookPage":120},{"number":6,"title":"Ancient Rome and Early Christianity","period":"500 B.C.–A.D. 500","bookPage":152},{"number":7,"title":"India and China Establish Empires","period":"400 B.C.–A.D. 550","bookPage":186},{"number":8,"title":"African Civilizations","period":"1500 B.C.–A.D. 700","bookPage":210},{"number":9,"title":"The Americas: A Separate World","period":"40,000 B.C.–A.D. 700","bookPage":232}]},{"title":"Unit 3 · An Age of Exchange and Encounter","chapters":[{"number":10,"title":"The Muslim World","period":"600–1250","bookPage":260},{"number":11,"title":"Byzantines, Russians, and Turks Interact","period":"500–1500","bookPage":298},{"number":12,"title":"Empires in East Asia","period":"600–1350","bookPage":320},{"number":13,"title":"European Middle Ages","period":"500–1200","bookPage":350},{"number":14,"title":"The Formation of Western Europe","period":"800–1500","bookPage":376},{"number":15,"title":"Societies and Empires of Africa","period":"800–1500","bookPage":406},{"number":16,"title":"People and Empires in the Americas","period":"500–1500","bookPage":438}]},{"title":"Unit 4 · Connecting Hemispheres","chapters":[{"number":17,"title":"European Renaissance and Reformation","period":"1300–1600","bookPage":468},{"number":18,"title":"The Muslim World Expands","period":"1300–1700","bookPage":504},{"number":19,"title":"An Age of Explorations and Isolation","period":"1400–1800","bookPage":526},{"number":20,"title":"The Atlantic World","period":"1492–1800","bookPage":550}]},{"title":"Unit 5 · Absolutism to Revolution","chapters":[{"number":21,"title":"Absolute Monarchs in Europe","period":"1500–1800","bookPage":586},{"number":22,"title":"Enlightenment and Revolution","period":"1550–1789","bookPage":620},{"number":23,"title":"The French Revolution and Napoleon","period":"1789–1815","bookPage":648},{"number":24,"title":"Nationalist Revolutions Sweep the West","period":"1789–1900","bookPage":678}]},{"title":"Unit 6 · Industrialism and the Race for Empire","chapters":[{"number":25,"title":"The Industrial Revolution","period":"1700–1900","bookPage":714},{"number":26,"title":"An Age of Democracy and Progress","period":"1815–1914","bookPage":744},{"number":27,"title":"The Age of Imperialism","period":"1850–1914","bookPage":770},{"number":28,"title":"Transformations Around the Globe","period":"1800–1914","bookPage":802}]},{"title":"Unit 7 · The World at War","chapters":[{"number":29,"title":"The Great War","period":"1914–1918","bookPage":838},{"number":30,"title":"Revolution and Nationalism","period":"1900–1939","bookPage":864},{"number":31,"title":"Years of Crisis","period":"1919–1939","bookPage":894},{"number":32,"title":"World War II","period":"1939–1945","bookPage":922}]},{"title":"Unit 8 · Perspectives on the Present","chapters":[{"number":33,"title":"Restructuring the Postwar World","period":"1945–Present","bookPage":962},{"number":34,"title":"The Colonies Become New Nations","period":"1945–Present","bookPage":994},{"number":35,"title":"Struggles for Democracy","period":"1945–Present","bookPage":1030},{"number":36,"title":"Global Interdependence","period":"1960–Present","bookPage":1068}]}];
-  const chapters = chapterUnits.flatMap(unit => unit.chapters.map(ch => ({
-    number: ch.number, title: ch.title, period: ch.period, bookPage: ch.bookPage,
-    pdfPage: ch.bookPage + 120, unit: unit.title
-  })));
+  let chapters = [];
+  let chapterDiscovery = "idle";
+  let chapterSource = "";
+  let bookTitle = "Patterns of Interaction";
+
+  function setBookTitle(value) {
+    const title = String(value || "").replace(/\s+/g, " ").trim() || "PDF Flipbook";
+    bookTitle = title;
+    document.title = title + " | Flipbook";
+    document.querySelector(".brand-title").textContent = title;
+    document.querySelector(".brand-sub").textContent = "PDF flipbook · your file stays here";
+    document.querySelector(".reader-head h1").textContent = title;
+    document.querySelector(".reader-head .eyebrow").textContent = "Your book, ready to read";
+  }
+
+  function cleanFileTitle(name) {
+    return String(name || "").replace(/\.[^.]+$/, "").replace(/[_]+/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  function normalizedChapterNumber(value) {
+    const text = String(value || "").trim();
+    const words = { one:"1", first:"1", two:"2", second:"2", three:"3", third:"3", four:"4", fourth:"4", five:"5", fifth:"5", six:"6", sixth:"6", seven:"7", seventh:"7", eight:"8", eighth:"8", nine:"9", ninth:"9", ten:"10", tenth:"10", eleven:"11", twelfth:"12", twelve:"12", thirteen:"13", fourteen:"14", fifteen:"15", sixteen:"16", seventeen:"17", eighteen:"18", nineteen:"19", twenty:"20" };
+    return words[text.toLowerCase()] || (/^[ivxlcdm]+$/i.test(text) ? text.toUpperCase() : text);
+  }
+
+  function parseChapterTitle(rawTitle) {
+    const clean = String(rawTitle || "").replace(/\s+/g, " ").trim();
+    const marker = /^(?:chapter|chap\.?)\s+(\d{1,3}|[ivxlcdm]{1,8}|one|first|two|second|three|third|four|fourth|five|fifth|six|sixth|seven|seventh|eight|eighth|nine|ninth|ten|tenth|eleven|twelve|twelfth|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b\s*[:.·—–-]?\s*(.*)$/i;
+    const match = clean.match(marker);
+    if (!match) return { number: null, title: clean };
+    const number = normalizedChapterNumber(match[1]);
+    return { number: number, title: match[2].trim() || "Chapter " + number };
+  }
 
   function chapterAtPage(n) {
     let match = null;
@@ -160,46 +188,211 @@ try {
     return match;
   }
 
+  function dedupeChapters(items, byNumber) {
+    const sorted = items.filter(item => item && item.pdfPage >= 1 && item.pdfPage <= total && item.title)
+      .sort((a, b) => a.pdfPage - b.pdfPage || (a.depth || 0) - (b.depth || 0));
+    const seen = new Set();
+    const output = [];
+    for (const item of sorted) {
+      const title = String(item.title).replace(/\s+/g, " ").trim();
+      const key = byNumber && item.number
+        ? "n:" + item.number + ":" + title.toLowerCase()
+        : "p:" + item.pdfPage;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      output.push({ number: item.number || null, title: title, pdfPage: item.pdfPage, depth: item.depth || 0 });
+    }
+    return output;
+  }
+
+  async function outlineChapters(doc) {
+    let outline;
+    try { outline = await doc.getOutline(); } catch (error) { return []; }
+    if (!Array.isArray(outline) || !outline.length) return [];
+    const nodes = [];
+    function collect(items, depth) {
+      for (const item of items || []) {
+        nodes.push({ item: item, depth: depth });
+        if (Array.isArray(item.items) && item.items.length) collect(item.items, depth + 1);
+      }
+    }
+    collect(outline, 0);
+    const mapped = await Promise.all(nodes.map(async node => {
+      const item = node.item;
+      try {
+        let destination = item.dest;
+        if (typeof destination === "string") destination = await doc.getDestination(destination);
+        if (!Array.isArray(destination) || !destination.length) return null;
+        const ref = destination[0];
+        const index = typeof ref === "number" ? ref : await doc.getPageIndex(ref);
+        const parsed = parseChapterTitle(item.title);
+        return { number: parsed.number, title: parsed.title, pdfPage: index + 1, depth: node.depth, raw: item };
+      } catch (error) { return null; }
+    }));
+    const valid = mapped.filter(item => item && item.pdfPage >= 1 && item.pdfPage <= total);
+    const explicit = valid.filter(item => item.number);
+    if (explicit.length) return dedupeChapters(explicit, true);
+
+    let selected = valid.filter(item => item.depth === 0 &&
+      !/^(contents|table of contents|cover|title page|copyright|dedication|preface|foreword|index|bibliography|references|glossary|appendix|front matter|back matter)$/i.test(item.title));
+    if (outline.every(item => item && Array.isArray(item.items) && item.items.length)) {
+      const children = valid.filter(item => item.depth === 1);
+      if (children.length >= 2) selected = children.filter(item =>
+        !/^(contents|table of contents|cover|title page|copyright|dedication|preface|foreword|index|bibliography|references|glossary|appendix)$/i.test(item.title));
+    }
+    if (!selected.length) selected = valid.filter(item => item.depth === 1);
+    return dedupeChapters(selected, false);
+  }
+
+  async function textHeadingOnPage(doc, pageNumber) {
+    const pdfPage = await doc.getPage(pageNumber);
+    const content = await pdfPage.getTextContent({ includeMarkedContent: false });
+    const groups = [];
+    let sequence = 0;
+    for (const item of content.items || []) {
+      if (!item || typeof item.str !== "string") continue;
+      const text = item.str.replace(/\s+/g, " ").trim();
+      if (!text) continue;
+      const transform = item.transform;
+      const y = transform && Number.isFinite(transform[5]) ? transform[5] : null;
+      const x = transform && Number.isFinite(transform[4]) ? transform[4] : sequence;
+      for (const part of text.split(/\n+/).map(value => value.trim()).filter(Boolean)) {
+        let group = y === null ? null : groups.find(line => line.y !== null && Math.abs(line.y - y) < 3.5);
+        if (!group) {
+          group = { y: y, x: x, sequence: sequence++, parts: [] };
+          groups.push(group);
+        }
+        group.parts.push({ x: x, text: part });
+      }
+    }
+    groups.sort((a, b) => {
+      if (a.y === null || b.y === null) return a.sequence - b.sequence;
+      return b.y - a.y || a.x - b.x;
+    });
+    const lines = groups.map(group => group.parts.sort((a, b) => a.x - b.x).map(part => part.text).join(" "));
+    const marker = /^\s*(?:chapter|chap\.?)\s+(\d{1,3}|[ivxlcdm]{1,8}|one|first|two|second|three|third|four|fourth|five|fifth|six|sixth|seven|seventh|eight|eighth|nine|ninth|ten|tenth|eleven|twelve|twelfth|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b\s*[:.·—–-]?\s*(.*)$/i;
+    for (let index = 0; index < Math.min(lines.length, 18); index++) {
+      const candidate = lines[index] + (lines[index + 1] ? " " + lines[index + 1] : "");
+      const match = candidate.match(marker);
+      if (!match) continue;
+      const number = normalizedChapterNumber(match[1]);
+      let title = match[2].trim();
+      if (!title) {
+        for (let next = index + 1; next < Math.min(lines.length, index + 4); next++) {
+          const line = lines[next].trim();
+          if (line && !/^chapter\s+/i.test(line) && line.length > 2) { title = line; break; }
+        }
+      }
+      title = title.replace(/\s+/g, " ").trim();
+      if (title.length > 100) title = title.slice(0, 100).replace(/\s+\S*$/, "");
+      return { number: number, title: title || "Chapter " + number, pdfPage: pageNumber, depth: 0 };
+    }
+    return null;
+  }
+
+  async function scanTextForChapters(doc, generation) {
+    const found = [];
+    let nextPage = 1;
+    let scanned = 0;
+    const worker = async () => {
+      while (generation === pdfEpoch) {
+        const pageNumber = nextPage++;
+        if (pageNumber > doc.numPages) return;
+        try {
+          const heading = await textHeadingOnPage(doc, pageNumber);
+          if (heading) found.push(heading);
+        } catch (error) {}
+        scanned++;
+        if (scanned % 32 === 0 && generation === pdfEpoch) {
+          $("chapterHint").textContent = "Finding chapter starts… scanned " + scanned + " of " + doc.numPages + " pages.";
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(4, doc.numPages) }, worker));
+    return dedupeChapters(found, true);
+  }
+
+  async function setPdfTitle(doc, file, generation) {
+    const fallback = cleanFileTitle(file.name);
+    try {
+      const metadata = await doc.getMetadata();
+      if (generation !== pdfEpoch) return;
+      const title = metadata && metadata.info && metadata.info.Title;
+      setBookTitle(title && title.trim() && !/^untitled$/i.test(title.trim()) ? title : fallback);
+    } catch (error) {
+      if (generation === pdfEpoch) setBookTitle(fallback);
+    }
+  }
+
+  async function discoverPdfChapters(doc, generation) {
+    chapterDiscovery = "scanning";
+    chapterSource = "";
+    chapters = [];
+    populateChapterSelect();
+    try {
+      const fromOutline = await outlineChapters(doc);
+      if (generation !== pdfEpoch) return;
+      let found = fromOutline;
+      if (found.length) chapterSource = "bookmarks";
+      else {
+        $("chapterHint").textContent = "No bookmarks found. Looking through the PDF for chapter headings…";
+        found = await scanTextForChapters(doc, generation);
+        if (generation !== pdfEpoch) return;
+        if (found.length) chapterSource = "text";
+      }
+      chapters = found;
+      chapterDiscovery = chapters.length ? "ready" : "none";
+      populateChapterSelect();
+      updateControls();
+    } catch (error) {
+      if (generation !== pdfEpoch) return;
+      chapters = [];
+      chapterDiscovery = "none";
+      populateChapterSelect();
+      updateControls();
+    }
+  }
+
   function refreshChapterSelection() {
-    const select=$("chapterSelect");
-    if(!select)return;
-    const active=chapterAtPage(page);
-    select.disabled=!flipbook||busy||preparing||isTurning;
-    if(navigationTarget)select.value=String(navigationTarget);
-    else if(active&&document.activeElement!==select)select.value=String(active.pdfPage);
-    if(!flipbook)$("chapterHint").textContent="Open a PDF to enable chapter jumps.";
-    else if(!preparing&&!isTurning)$("chapterHint").textContent="Select a chapter to jump to its beginning.";
+    const select = $("chapterSelect");
+    if (!select) return;
+    const active = chapterAtPage(page);
+    select.disabled = !flipbook || busy || preparing || isTurning || chapterDiscovery !== "ready";
+    if (navigationTarget) select.value = String(navigationTarget);
+    else if (active && document.activeElement !== select) select.value = String(active.pdfPage);
+    if (!flipbook) $("chapterHint").textContent = "Open a PDF to enable chapter jumps.";
+    else if (chapterDiscovery === "scanning") $("chapterHint").textContent = "Finding chapters in this PDF…";
+    else if (!chapters.length) $("chapterHint").textContent = "No chapter markers found. You can still turn pages or search.";
+    else if (!preparing && !isTurning) $("chapterHint").textContent = "Select a chapter to jump to its beginning.";
   }
 
   function populateChapterSelect() {
-    const select=$("chapterSelect");
+    const select = $("chapterSelect");
+    if (!select) return;
     select.replaceChildren();
-    const prompt=document.createElement("option");
-    prompt.value="";
-    prompt.textContent="Choose a chapter…";
-    prompt.disabled=true;
-    prompt.selected=true;
+    const prompt = document.createElement("option");
+    prompt.value = "";
+    prompt.disabled = true;
+    prompt.selected = true;
+    if (!flipbook) prompt.textContent = "Open a PDF first…";
+    else if (chapterDiscovery === "scanning") prompt.textContent = "Finding chapters…";
+    else if (!chapters.length) prompt.textContent = "No chapters detected";
+    else prompt.textContent = "Choose a chapter…";
     select.appendChild(prompt);
-    for(const unit of chapterUnits) {
-      const group=document.createElement("optgroup");
-      group.label=unit.title;
-      for(const ch of unit.chapters) {
-        const mapped=chapters.find(item=>item.number===ch.number);
-        if(!mapped)continue;
-        const option=document.createElement("option");
-        option.value=String(mapped.pdfPage);
-        option.textContent="Chapter "+ch.number+" · "+ch.title+" (book p. "+ch.bookPage+")";
-        group.appendChild(option);
-      }
-      select.appendChild(group);
+    for (const chapter of chapters) {
+      const option = document.createElement("option");
+      option.value = String(chapter.pdfPage);
+      option.textContent = (chapter.number ? "Chapter " + chapter.number + " · " : "") + chapter.title + " (PDF p. " + chapter.pdfPage + ")";
+      select.appendChild(option);
     }
-    select.addEventListener("change",async()=>{
-      const ch=chapters.find(item=>item.pdfPage===Number(select.value));
-      if(!ch)return;
-      $("chapterHint").textContent="Opening Chapter "+ch.number+"…";
-      const opened=await jumpToPage(ch.pdfPage);
-      $("chapterHint").textContent=opened?"Chapter "+ch.number+" · "+ch.title:"Could not open that chapter. Please try again.";
-    });
+    select.onchange = async () => {
+      const chapter = chapters.find(item => item.pdfPage === Number(select.value));
+      if (!chapter) return;
+      const label = chapter.number ? "Chapter " + chapter.number : chapter.title;
+      $("chapterHint").textContent = "Opening " + label + "…";
+      const opened = await jumpToPage(chapter.pdfPage);
+      $("chapterHint").textContent = opened ? label + " · PDF page " + chapter.pdfPage : "Could not open that chapter. Please try again.";
+    };
     refreshChapterSelection();
   }
 
@@ -377,22 +570,23 @@ try {
       setBusy(false);$("loading").classList.remove("hidden");
       $("loadingText").textContent="Connect to the internet to load the flipbook reader, then refresh.";return;
     }
-    const generation=++pdfEpoch;setBusy(true,"Opening PDF from this device…");
+    const generation=++pdfEpoch;setBusy(true,"Opening PDF from this device…");setBookTitle(cleanFileTitle(file.name));chapters=[];chapterDiscovery="scanning";chapterSource="";populateChapterSelect();
     try {
       if(flipbook){flipbook.destroy();flipbook=null;}
       if(pdf){try{await pdf.destroy();}catch(e){}}
-      pdf=null;total=0;page=1;isTurning=false;preparing=false;navigationTarget=null;stored={};
+      pdf=null;total=0;page=1;isTurning=false;preparing=false;navigationTarget=null;stored={};chapters=[];chapterDiscovery="scanning";chapterSource="";
 $("searchNote").textContent="Searches selectable text in your PDF.";
       rebuildBookRoot();
       const data=new Uint8Array(await file.arrayBuffer());if(generation!==pdfEpoch)return;
       pdf=await pdfjsLib.getDocument({data:data}).promise;if(generation!==pdfEpoch)return;
-      total=pdf.numPages;storageKey="worldHistoryFlipbook:"+file.name+":"+file.size;
+      total=pdf.numPages;storageKey="worldHistoryFlipbook:"+file.name+":"+file.size;void setPdfTitle(pdf,file,generation);
       try{stored=JSON.parse(localStorage.getItem(storageKey)||"{}");}catch(e){stored={};}
       page=clamp(stored.page||1);createPageNodes();
       const warm=[];for(let n=Math.max(1,page-2);n<=Math.min(total,page+3);n++)warm.push(n);
       await ensurePages(warm);if(generation!==pdfEpoch)return;
       startFlipbook();setBusy(false);
       warmPages();
+      void discoverPdfChapters(pdf,generation);
     } catch(e) {
       console.error(e);setBusy(false);$("loading").classList.remove("hidden");
       $("loadingText").textContent="This PDF could not be opened. Choose a valid PDF file and try again.";
